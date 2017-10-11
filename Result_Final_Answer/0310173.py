@@ -4,12 +4,16 @@ import socket
 import datetime
 import matplotlib.pyplot as plt
 import numpy as np
+
+#### Info ####
 FILE_NAME = 'UltimateFile.pcap'
 SOURCE_IP = "140.113.195.91"
 PORT_1 = 39286
 PORT_2 = 39288
 
-first_loop = 0
+#### Variable Initialization ####
+
+first_loop = True
 ini_trans_time = 0
 
 first = 0
@@ -58,23 +62,18 @@ def printPcap(pcap):
         dst = socket.inet_ntoa(ip.dst)
 
         tcp = ip.data
-        if first_loop == 0 and (src == SOURCE_IP and tcp.dport == PORT_1 or src == SOURCE_IP and tcp.dport == PORT_2):
-            first_loop = 1
+
+        if first_loop == True and (src == SOURCE_IP and tcp.dport == PORT_1 or src == SOURCE_IP and tcp.dport == PORT_2):
+            first_loop = False
             ini_trans_time = ts
-        ###############  Debug  ####################
-        #if time_interval_count == 1:
-        #    print "I was once one"
-        #if ts - ini_trans_time <= 1.0:
-            #print time_interval_count
-            #print ts - ini_trans_time
-        ############################################  
-        if (time_interval * time_interval_count) <=  (ts - ini_trans_time) and (ts - ini_trans_time) < (time_interval * time_interval_count)+time_interval:
+
+        if (time_interval * time_interval_count) <=  (ts - ini_trans_time) and (ts - ini_trans_time) < time_interval * (time_interval_count + 1):
             if src == SOURCE_IP and tcp.dport == PORT_1:
                 pkgsize_cumulator_1 = pkgsize_cumulator_1 + len(buf)
                 
             if src == SOURCE_IP and tcp.dport == PORT_2:
                 pkgsize_cumulator_2 = pkgsize_cumulator_2 + len(buf)
-        elif (ts - ini_trans_time) >= (time_interval * time_interval_count)+time_interval and first_loop == 1 :
+        elif (ts - ini_trans_time) >= (time_interval * time_interval_count)+time_interval and first_loop == False :
             time_interval_count = time_interval_count + 1
 
             list_pkgsize_1.append(pkgsize_cumulator_1/time_interval)
@@ -86,12 +85,6 @@ def printPcap(pcap):
                 pkgsize_cumulator_1 = pkgsize_cumulator_1 + len(buf)
             if src == SOURCE_IP and tcp.dport == PORT_2:
                 pkgsize_cumulator_2 = pkgsize_cumulator_2 + len(buf)
-            #print time_interval_count
-            #print ts - ini_trans_time
-
-
-
-
 
 
         if src == SOURCE_IP and tcp.dport == PORT_1:
@@ -100,10 +93,9 @@ def printPcap(pcap):
                 first_ts = ts
                 first_seq = tcp.seq
 
-            #print '[+] Src:'+src+' -->Dst:'+dst +  '\tseq: ' + str(tcp.seq-first_seq) + '  \ttime:' + format(ts-first_ts, '.6f') + '\tsize: ' + str(len(buf))
-
             list_ts_1.append(ts-first_ts)
             list_sqn_1.append( tcp.seq-first_seq)
+
 
         if src == SOURCE_IP and tcp.dport == PORT_2:
             if second == 0:
@@ -111,29 +103,27 @@ def printPcap(pcap):
                 second_ts = ts
                 second_seq = tcp.seq
 
-            #print '[+] Src:'+src+' -->Dst:'+dst +  '\tseq: ' + str(tcp.seq-second_seq) + '  \ttime:' + format(ts-second_ts, '.6f') + '\tsize: ' + str(len(buf))
-
             list_ts_2.append(ts-second_ts)
             list_sqn_2.append(tcp	.seq-second_seq)
+
 
     list_pkgsize_1.append(pkgsize_cumulator_1/time_interval)
     list_pkgsize_2.append(pkgsize_cumulator_2/time_interval)
 
-    #print time_interval_count
-    lineSpace =  np.linspace(0, time_interval_count, time_interval_count+1).tolist()
-    #print lineSpace
-    #print list_pkgsize_1
-    #Sprint list_pkgsize_2
-    #print time_interval_count	
-    #draw_sqn(list_ts_1, list_sqn_1, list_ts_2, list_sqn_2)
-    draw_pkgsize(list_pkgsize_1, list_pkgsize_2, lineSpace)
 
-def draw_pkgsize(list_pkgsize_1, list_pkgsize_2, lineSpace):
+    lineSpace =  np.linspace(0, time_interval_count, time_interval_count+1).tolist()
+
+    draw_traffic(list_pkgsize_1, list_pkgsize_2, lineSpace)
+
+
+
+
+def draw_traffic(list_pkgsize_1, list_pkgsize_2, lineSpace):
     plt.plot(lineSpace, list_pkgsize_1, 'r')
     plt.plot(lineSpace, list_pkgsize_2, 'b')
-    plt.xlabel("Time");	
-    plt.ylabel("Packet Size");
-    plt.title("graph")
+    plt.xlabel("Time Window");	
+    plt.ylabel("Transmission Rate");
+    plt.title("Traffic of Two Downloads")
     plt.show()
 
 

@@ -4,10 +4,10 @@ import socket
 import datetime
 import matplotlib.pyplot as plt
 import numpy as np
-FILE_NAME = 'UltimateFile.pcap'
+FILE_NAME = 'lab1_0310173_rx_wget.pcap'
 SOURCE_IP = "140.113.195.91"
-PORT_1 = 39286
-PORT_2 = 39288
+PORT_1 = 42476
+PORT_2 = 42478
 
 first_loop = 0
 ini_trans_time = 0
@@ -40,7 +40,7 @@ def printPcap(pcap):
     list_sqn_2 = []
     list_pkgsize_2 = []
 
-    time_interval = 0.03
+    time_interval = 0.05
     time_interval_count = 0
 
  
